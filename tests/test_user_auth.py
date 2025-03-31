@@ -1,16 +1,13 @@
 import pytest
-import requests
 from lib.base_case import BaseCase
 from lib.assertions import Assertions
+from lib.my_requests import MyRequests
 
 class TestUserAuth(BaseCase):
-    url_login = "https://playground.learnqa.ru/api/user/login"
-    url_auth = "https://playground.learnqa.ru/api/user/auth"
     exclude_params = [
         ("no_cookie"),
         ("no_token")
     ]
-
 
     def setup_method(self):
         data = {
@@ -18,7 +15,7 @@ class TestUserAuth(BaseCase):
             'password': '1234'
         }
 
-        response1 = requests.post(self.url_login, data=data)
+        response1 = MyRequests.post("/user/login", data=data)
 
         self.auth_sid = self.get_cookie(response1, "auth_sid")
         self.token = self.get_header(response1, "x-csrf-token")
@@ -26,9 +23,8 @@ class TestUserAuth(BaseCase):
 
 
     def test_auth_user(self):
-
-        response2 = requests.get(
-            self.url_auth,
+        response2 = MyRequests.get(
+            "/user/auth",
             headers={"x-csrf-token": self.token},
             cookies={"auth_sid": self.auth_sid}
         )
@@ -43,15 +39,14 @@ class TestUserAuth(BaseCase):
 
     @pytest.mark.parametrize('condition', exclude_params)
     def test_negative_auth_check(self, condition):
-
         if condition == "no_cookie":
-            response2 = requests.get(
-                self.url_auth,
+            response2 = MyRequests.get(
+                "/user/auth",
                 headers={"x-csrf-token": self.token}
             )
         else:
-            response2 = requests.get(
-                self.url_auth,
+            response2 = MyRequests.get(
+                "/user/auth",
                 cookies={"auth_sid": self.auth_sid}
             )
 
