@@ -44,6 +44,7 @@ class BaseCase:
 
     def create_user_and_login(self):
         register_data = self.prepare_registration_data()
+
         response_create = MyRequests.post("/user/", data=register_data)
 
         Assertions.assert_code_status(response_create, 200)

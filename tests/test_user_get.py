@@ -32,17 +32,19 @@ class TestUserGet(BaseCase):
         )
 
         expected_fields = ["username", "email", "firstName", "lastName"]
+
         Assertions.assert_json_has_keys(response2, expected_fields)
 
 
     def test_get_user_details_auth_as_another_user(self):
-
         user1_data = self.create_user_and_login()
-
         user2_data = self.prepare_registration_data()
+
         response2 = MyRequests.post("/user/", data=user2_data)
 
         Assertions.assert_code_status(response2, 200)
+        Assertions.assert_json_has_key(response2, "id")
+
         user2_id = self.get_json_value(response2, "id")
 
         response = MyRequests.get(
