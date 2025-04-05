@@ -37,7 +37,7 @@ class TestUserGet(BaseCase):
 
     def test_get_user_details_auth_as_another_user(self):
 
-        user1_data = self.create_user_and_auth()
+        user1_data = self.create_user_and_login()
 
         user2_data = self.prepare_registration_data()
         response2 = MyRequests.post("/user/", data=user2_data)
