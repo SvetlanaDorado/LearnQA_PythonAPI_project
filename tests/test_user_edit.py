@@ -4,7 +4,6 @@ from lib.assertions import Assertions
 from lib.my_requests import MyRequests
 from lib.utils import generate_random_string
 
-
 class TestUserEdit(BaseCase):
     invalid_params = [
         (
@@ -19,14 +18,13 @@ class TestUserEdit(BaseCase):
         )
     ]
 
-
     def test_edit_just_created_user(self):
         # Register and Login
-        user_data = self.create_user_and_login()
+        data = self.create_user_and_login()
 
-        user_id = user_data["user_id"]
-        token = user_data["token"]
-        auth_sid = user_data["auth_sid"]
+        user_id = data["user_id"]
+        token = data["token"]
+        auth_sid = data["auth_sid"]
 
         new_name = "Changed Name"
 
@@ -54,9 +52,9 @@ class TestUserEdit(BaseCase):
 
 
     def test_edit_user_without_auth(self):
-        user_data = self.prepare_registration_data()
+        data = self.prepare_registration_data()
 
-        response_create = MyRequests.post("/user/", data=user_data)
+        response_create = MyRequests.post("/user/", data=data)
 
         Assertions.assert_code_status(response_create, 200)
         Assertions.assert_json_has_key(response_create, "id")
@@ -75,23 +73,25 @@ class TestUserEdit(BaseCase):
 
     def test_edit_user_as_another_user(self):
         # Register and login as user1
-        user1 = self.create_user_and_login()
+        user1_data = self.create_user_and_login()
+        token_user1 = user1_data["token"]
+        auth_sid_user1 = user1_data["auth_sid"]
 
         # Register user2
         user2_data = self.prepare_registration_data()
 
-        response_create2 = MyRequests.post("/user/", data=user2_data)
+        response_create = MyRequests.post("/user/", data=user2_data)
 
-        Assertions.assert_code_status(response_create2, 200)
-        Assertions.assert_json_has_key(response_create2, "id")
+        Assertions.assert_code_status(response_create, 200)
+        Assertions.assert_json_has_key(response_create, "id")
 
-        user2_id = self.get_json_value(response_create2, "id")
+        user2_id = self.get_json_value(response_create, "id")
 
         # Edit user2 while logged in as user1
         response_edit = MyRequests.put(
             f"/user/{user2_id}",
-            headers={"x-csrf-token": user1["token"]},
-            cookies={"auth_sid": user1["auth_sid"]},
+            headers={"x-csrf-token": token_user1},
+            cookies={"auth_sid": auth_sid_user1},
             data={"firstName": "Name Another User"}
         )
 
@@ -102,11 +102,11 @@ class TestUserEdit(BaseCase):
 
     @pytest.mark.parametrize("field, value, expected_message", invalid_params)
     def test_edit_user_with_invalid_data(self, field, value, expected_message):
-        user_data = self.create_user_and_login()
+        data = self.create_user_and_login()
 
-        user_id = user_data["user_id"]
-        token = user_data["token"]
-        auth_sid = user_data["auth_sid"]
+        user_id = data["user_id"]
+        token = data["token"]
+        auth_sid = data["auth_sid"]
 
         response = MyRequests.put(
             f"/user/{user_id}",
